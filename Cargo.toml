@@ -1,0 +1,10 @@
+[package]
+name = "system-idle-time"
+version = "0.1.0"
+edition = "2024"
+
+[target.'cfg(macos)'.dependencies]
+IOKit-sys = "0.1.5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = "0.61.0"
