@@ -41,7 +41,7 @@ fn get_idle_time_wayland() -> Result<std::time::Duration, Box<dyn std::error::Er
   let idle_service = service_names
     .into_iter()
     .find(|s| s.contains("IdleMonitor"))
-    .ok_or_else(|| "No IdleMonitor service found")?;
+    .ok_or("No IdleMonitor service found")?;
 
   // Convert name to path
   let service_path = format!("/{}", idle_service.replace('.', "/"));
@@ -69,14 +69,11 @@ fn get_idle_time_x11() -> Result<std::time::Duration, Box<dyn std::error::Error>
   let screen = &conn.setup().roots[screen_num];
 
   // Ensure the ScreenSaver extension is available
-  let ss = conn.screensaver_query_version(1, 0)?.reply()?;
-  // Not really needed except to ensure the extension exists
-  let _ = ss;
+  let _ = conn.screensaver_query_version(1, 0)?.reply()?;
 
   // Query idle info
   let info = conn.screensaver_query_info(screen.root)?.reply()?;
 
-  // info.idle is milliseconds since last user input
   Ok(std::time::Duration::from_millis(
     info.ms_since_user_input.into(),
   ))
