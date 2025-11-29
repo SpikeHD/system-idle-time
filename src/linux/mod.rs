@@ -7,8 +7,7 @@ pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>
   }
 
   // Otherwise, attempt to get idle time using `xprintidle`
-  let proc = std::process::Command::new("xprintidle")
-    .output()?;
+  let proc = std::process::Command::new("xprintidle").output()?;
 
   if !proc.status.success() {
     return Err(format!("xprintidle returned non-zero exit status: {}", proc.status).into());

@@ -1,5 +1,5 @@
-use windows_sys::Win32::UI::Input::KeyboardAndMouse::GetLastInputInfo;
 use windows_sys::Win32::System::SystemInformation::GetTickCount;
+use windows_sys::Win32::UI::Input::KeyboardAndMouse::GetLastInputInfo;
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::LASTINPUTINFO;
 
 pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
