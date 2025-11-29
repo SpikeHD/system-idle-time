@@ -1,20 +1,76 @@
 pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
-  // check XDG_SESSION_TYPE and WAYLAND_DISPLAY. If we are on Wayland, return 0 as it's unsupported
-  if std::env::var("XDG_SESSION_TYPE").unwrap_or_default() == "wayland"
-    || std::env::var("WAYLAND_DISPLAY").is_ok()
-  {
-    return Err("Wayland is not supported".into());
+  // Check if wayland
+  if std::env::var("XDG_SESSION_TYPE").unwrap_or_default() == "wayland" {
+    #[cfg(feature = "wayland")]
+    return get_idle_time_wayland();
+    #[cfg(not(feature = "wayland"))]
+    return Err("Wayland feature is disabled".into());
   }
 
-  // Otherwise, attempt to get idle time using `xprintidle`
-  let proc = std::process::Command::new("xprintidle").output()?;
+  // Assume X11
+  #[cfg(feature = "x11")]
+  return get_idle_time_x11();
+  #[cfg(not(feature = "x11"))]
+  Err("X11 feature is disabled".into())
+}
 
-  if !proc.status.success() {
-    return Err(format!("xprintidle returned non-zero exit status: {}", proc.status).into());
-  }
+// Implementation based on https://github.com/bkbilly/dbus_idle/blob/master/dbus_idle/__init__.py
+fn get_idle_time_wayland() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
+  use zbus::{
+    blocking::Connection,
+  };
 
-  let output = String::from_utf8(proc.stdout)?;
-  let idle_time = output.trim().parse::<u64>()?;
+  let conn = Connection::session()?;
+  let reply = conn.call_method(
+    Some("org.freedesktop.DBus"),
+    "/org/freedesktop/DBus",
+    Some("org.freedesktop.DBus"),
+    "ListNames",
+    &(),
+  )?;
 
-  Ok(std::time::Duration::from_millis(idle_time))
+  let service_names: Vec<String> = reply.body().deserialize()?;
+
+  let idle_service = service_names
+    .into_iter()
+    .find(|s| s.contains("IdleMonitor"))
+    .ok_or_else(|| "No IdleMonitor service found")?;
+
+  // Convert name to path
+  let service_path = format!("/{}", idle_service.replace('.', "/"));
+  let service_path = format!("{}/Core", service_path);
+  let interface = idle_service.clone();
+  let reply = conn.call_method(
+    Some(idle_service.as_str()),
+    service_path.as_str(),
+    Some(interface.as_str()),
+    "GetIdletime",
+    &(),
+  )?;
+
+  let idle_time_ms: u64 = reply.body().deserialize()?;
+  Ok(std::time::Duration::from_millis(idle_time_ms))
+}
+
+fn get_idle_time_x11() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
+  use x11rb::connection::Connection;
+  use x11rb::protocol::screensaver::ConnectionExt;
+  use x11rb::rust_connection::RustConnection;
+
+  // Connect to X11
+  let (conn, screen_num) = RustConnection::connect(None)?;
+  let screen = &conn.setup().roots[screen_num];
+
+  // Ensure the ScreenSaver extension is available
+  let ss = conn.screensaver_query_version(1, 0)?.reply()?;
+  // Not really needed except to ensure the extension exists
+  let _ = ss;
+
+  // Query idle info
+  let info = conn
+    .screensaver_query_info(screen.root)?
+    .reply()?;
+
+  // info.idle is milliseconds since last user input
+  Ok(std::time::Duration::from_millis(info.ms_since_user_input.into()))
 }
