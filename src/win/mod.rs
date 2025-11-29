@@ -22,5 +22,5 @@ pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>
     (now - li.dwTime) as u64
   };
 
-  std::time::Duration::from_millis(delta_ms)
+  Ok(std::time::Duration::from_millis(delta_ms))
 }

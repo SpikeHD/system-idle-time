@@ -1,7 +1,7 @@
 #[cfg(target_os = "windows")]
-mod windows;
+mod win;
 #[cfg(target_os = "windows")]
-pub use windows::*;
+pub use win::*;
 
 #[cfg(target_os = "linux")]
 mod linux;
