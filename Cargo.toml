@@ -21,6 +21,6 @@ x11rb = { version = "0.13.2", features = ["screensaver"], optional = true }
 serde = { version = "1.0.228", optional = true }
 
 [features]
-default = ["wayland", "x11"]
-wayland = ["zbus", "serde"]
-x11 = ["x11rb"]
+default = ["x11", "wayland"]
+wayland = ["dep:zbus", "dep:serde"]
+x11 = ["dep:x11rb"]

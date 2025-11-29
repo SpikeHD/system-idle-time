@@ -24,6 +24,7 @@ pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>
 }
 
 // Implementation based on https://github.com/bkbilly/dbus_idle/blob/master/dbus_idle/__init__.py
+#[cfg(feature = "wayland")]
 fn get_idle_time_wayland() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
   use zbus::blocking::Connection;
 
@@ -59,6 +60,7 @@ fn get_idle_time_wayland() -> Result<std::time::Duration, Box<dyn std::error::Er
   Ok(std::time::Duration::from_millis(idle_time_ms))
 }
 
+#[cfg(feature = "x11")]
 fn get_idle_time_x11() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
   use x11rb::connection::Connection;
   use x11rb::protocol::screensaver::ConnectionExt;
