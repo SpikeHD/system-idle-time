@@ -19,6 +19,14 @@ unsafe extern "C" {
   fn IOObjectRelease(obj: u32) -> i32;
 }
 
+/**
+Get system idle time (macOS).
+
+This implementation reads the `HIDIdleTime` property from the `IOHIDSystem` service
+in the I/O Registry.
+
+**Unsafe disclaimer:** This function uses unsafe code to interface with macOS IOKit APIs.
+*/
 pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
   unsafe {
     let matching = IOServiceMatching("IOHIDSystem\0".as_ptr() as *const i8);

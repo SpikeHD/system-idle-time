@@ -1,3 +1,12 @@
+/**
+Get system idle time (Linux).
+
+This implementation supports both X11 (using `x11rb`) and Wayland (using `zbus`).
+It checks the `XDG_SESSION_TYPE` environment variable to determine
+the current session type.
+
+The implementation for each compositor is feature-gated, so you can pick and choose which to support.
+*/
 pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
   // Check if wayland
   if std::env::var("XDG_SESSION_TYPE").unwrap_or_default() == "wayland" {
@@ -16,9 +25,7 @@ pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>
 
 // Implementation based on https://github.com/bkbilly/dbus_idle/blob/master/dbus_idle/__init__.py
 fn get_idle_time_wayland() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
-  use zbus::{
-    blocking::Connection,
-  };
+  use zbus::blocking::Connection;
 
   let conn = Connection::session()?;
   let reply = conn.call_method(
@@ -67,10 +74,10 @@ fn get_idle_time_x11() -> Result<std::time::Duration, Box<dyn std::error::Error>
   let _ = ss;
 
   // Query idle info
-  let info = conn
-    .screensaver_query_info(screen.root)?
-    .reply()?;
+  let info = conn.screensaver_query_info(screen.root)?.reply()?;
 
   // info.idle is milliseconds since last user input
-  Ok(std::time::Duration::from_millis(info.ms_since_user_input.into()))
+  Ok(std::time::Duration::from_millis(
+    info.ms_since_user_input.into(),
+  ))
 }

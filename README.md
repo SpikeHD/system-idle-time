@@ -13,9 +13,10 @@ cargo add system-idle-time
 use system_idle_time::get_idle_time;
 
 fn main() {
-  let duration = get_idle_time();
-  
-  println!("Time since last input: {:?}", duration);
+    match get_idle_time() {
+        Ok(idle_time) => println!("Idle time: {} ms", idle_time.as_millis()),
+        Err(e) => eprintln!("Error getting idle time: {}", e),
+    }
 }
 ```
 
