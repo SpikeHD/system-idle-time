@@ -1,4 +1,4 @@
-pub fn get_idle_time() -> Result<u64, Box<dyn std::error::Error>> {
+pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
   // check XDG_SESSION_TYPE and WAYLAND_DISPLAY. If we are on Wayland, return 0 as it's unsupported
   if std::env::var("XDG_SESSION_TYPE").unwrap_or_default() == "wayland"
     || std::env::var("WAYLAND_DISPLAY").is_ok()
@@ -17,5 +17,5 @@ pub fn get_idle_time() -> Result<u64, Box<dyn std::error::Error>> {
   let output = String::from_utf8(proc.stdout)?;
   let idle_time = output.trim().parse::<u64>()?;
 
-  Ok(idle_time)
+  Ok(std::time::Duration::from_millis(idle_time))
 }
