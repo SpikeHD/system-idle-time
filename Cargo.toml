@@ -2,6 +2,13 @@
 name = "system-idle-time"
 version = "1.0.0"
 edition = "2024"
+authors = ["SpikeHD"]
+description = "A cross-platform library to get system idle time."
+license = "MIT"
+repository = "https://github.com/SpikeHD/system-idle-time"
+keywords = ["system", "idle", "time", "cross-platform"]
+categories = ["system-monitoring", "utilities"]
+readme = "README.md"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 core-foundation = "0.10.1"
