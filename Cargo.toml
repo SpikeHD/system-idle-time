@@ -1,6 +1,6 @@
 [package]
 name = "system-idle-time"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 authors = ["SpikeHD"]
 description = "A cross-platform Rust library for getting the last user input on the system."

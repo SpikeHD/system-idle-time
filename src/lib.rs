@@ -19,17 +19,27 @@ match get_idle_time() {
 ```
 */
 
-#[cfg(target_os = "windows")]
-mod win;
-#[cfg(target_os = "windows")]
-pub use win::*;
-
 #[cfg(target_os = "linux")]
 mod linux;
-#[cfg(target_os = "linux")]
-pub use linux::*;
-
+#[cfg(target_os = "windows")]
+mod win;
 #[cfg(target_os = "macos")]
 mod macos;
+
+#[cfg(target_os = "linux")]
+use linux::get_idle_time as plat_idle_time;
+#[cfg(target_os = "windows")]
+use win::get_idle_time as plat_idle_time;
 #[cfg(target_os = "macos")]
-pub use macos::*;
+use macos::get_idle_time as plat_idle_time;
+
+/// Get system idle time as a `Duration`.
+#[cfg(any(target_os = "linux", target_os = "windows", target_os = "macos"))]
+pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
+  plat_idle_time()
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+pub fn get_idle_time() -> Result<std::time::Duration, Box<dyn std::error::Error>> {
+  Err("Unsupported platform".into())
+}
